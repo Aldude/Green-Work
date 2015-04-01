@@ -1,20 +1,34 @@
+CFLAGS=-ldb -pthread -lm
 # Add .c files to this list as we add more files
-FILES=Main.c
+FILES=Main.c DBSetup.c
 OUT=mydbtest
+# tmp/ for ease of testing, assignment spec is /tmp/
+DIR=tmp/
 
-# Call make userdb where user is your CCID
+# Call make userrun where user is your CCID
 # and a temp directory under your CCID will be made
+# and the program will start
 
-%db:
-	mkdir /tmp/$*_db
-	gcc -o $(OUT) $(FILES) -ldb -pthread -lm
-	mv ./$(OUT) /tmp/$*_db/$(OUT)
+%run1: %db
+	./$(DIR)$*_db/$(OUT) btree
+
+%run2: %db
+	./$(DIR)$*_db/$(OUT) hash
+
+%run3: %db
+	./$(DIR)$*_db/$(OUT) indexfile
+
+%db: | %dir
+	gcc -o $(OUT) $(FILES) $(CFLAGS)
+	mv ./$(OUT) $(DIR)$*_db/$(OUT)
+
+%dir:
+	mkdir $(DIR)$*_db
 
 # Call make userdone where user is your CCID
 # and the temp directory, including all contents
 # will be removed
 
 %done:
-	cd ~
-	rm -f /tmp/$*_db/*
-	rmdir -f /tmp/$*_db
+	rm -f $(DIR)$*_db/*
+	rmdir $(DIR)$*_db

@@ -1,95 +1,109 @@
-/*
- *  A sample program to create a Berkeley db, and then 
- *  populate the db with 1000 records.
- *  
- *  Author: Prof. Li-Yan Yuan, University of Alberta
- * 
- *  A directory named "/tmp/my_db" must be created before testing this program.
- *  You may replace my_db with user_db, where user is your user name, 
- *  as required.
- *  
- *  Use the following to compile this sample program   
- *     gcc -o mydbtest sample.c -ldb -pthread -lm
- *
- */
-# include <stdlib.h>
-# include <string.h>
-# include <db.h>
+#include "predef.h"
 
-#define DA_FILE  "/tmp/my_db/sample_db"   
-#define DB_SIZE   1000
-
-int main(int argc, char *argv[]) {
-  DB *db;
-  int ret,range,index,i;
-  DBT key, data;
-  unsigned seed;
- 
-  char keybuff[128];
-  char databuff[128];
-
-  /*
-   *  to create a db handle
-   */
-  if ( (ret = db_create(&db, NULL, 0)) != 0 ) {
-    printf("db_create: %s\n", db_strerror(ret));
-    exit(1);
-  }
-
-  /*
-   *  to open the db
-   */
-  ret = db->open(db,NULL,DA_FILE,NULL,DB_BTREE,DB_CREATE,0);
-  if (ret != 0) {
-    printf("DB doesn't exist, creating a new one: %s\n", db_strerror(ret));
-    exit(1);
-  }
-
-  memset(&key, 0, sizeof(key));
-  memset(&data, 0, sizeof(data));
- 
-  /*
-   *  to seed the random number after db openning, and see it once.
-   */
-  seed = 10000000;
-  srand(seed);
-
-  /*
-   *  to populate the database
-   */
-  for (index=0;index<DB_SIZE;index++)  {
-
-    // to generate the key string
-    range=64+random()%(64);
-    for (i=0; i<range;i++)
-      keybuff[i]= (char)(97+random()%26);
-    keybuff[range]=0;
-       
-    key.data = keybuff; 
-    key.size = range; 
-
-    // to generate the data string
-    range=64+random()%(64);
-    for (i=0;i<range;i++)
-      databuff[i]= (char) (97+random()%26);
-    databuff[range]=0;
-
-    data.data=databuff;
-    data.size=range;
-
-    // You may record the key/data string for testing
-    printf("%s\n",(char *)key.data); printf("%s\n\n",(char *)data.data);
-
-    // to insert the key/data pair into the db
-    if (ret=db->put(db, NULL, &key, &data, 0))
-      printf("DB->put: %s\n", db_strerror(ret));
-  }
-    
-  /*
-   *  to close the database
-   */
-  if (ret = db->close(db,0))
-    printf("DB->close: %s\n", db_strerror(ret));
-  
-  return 0;
+int main(int argc, char * argv[]) {
+	int dbType;
+	int menuOption;
+	char buffer[128];
+	
+	DB * db;
+	
+	if (argc != 2) {
+		BadCall(argv);
+	}
+	
+	if (strcmp(argv[1], "btree") == 0) {
+		dbType = BTREE;
+		printf("DB_BTREE Selected\n");
+	}
+	else if (strcmp(argv[1], "hash") == 0) {
+		dbType = HASH;
+		printf("DB_HASH Selected\n");
+	}
+	else if (strcmp(argv[1], "indexfile") == 0) {
+		dbType = INDEXFILE;
+		printf("Custom Database Selected\n");
+	}
+	else {
+		BadCall(argv);
+	}
+	
+	while(1) {
+		printf("1) Create and populate a database\n");
+		printf("2) Retrieve records with a given key\n");
+		printf("3) Retrieve records with that contain the given data\n");
+		printf("4) Retrieve records within a given range of key values\n");
+		printf("5) Destroy the database\n");
+		printf("6) Quit\n");
+		printf("Make a selection: ");
+		menuOption = atoi(gets(buffer));
+	
+		if ((menuOption < 1) || (menuOption > 6)) {
+			printf("Invalid selection: <%s>\n", buffer);
+		}
+		else if (menuOption == 5) {
+			//Destroy DB
+		}
+		else if (menuOption == 6) {
+			return 0;
+		}
+		else {
+			Execute(dbType, menuOption, db);
+		}
+	}
+	
+	return 0;
 }
+
+void BadCall(char * argv[]) {
+	printf("Invalid call. Syntax is ");
+	printf("%s <db_type_option>\n", argv[0]);
+	printf("Where db_type_option is:\n");
+	printf("(1) btree  for DB_BTREE\n");
+	printf("(2) hash for DB_HASH or\n");
+	printf("(3) indexfile for improved database\n");
+	exit(-1);
+}
+
+int Execute(int dbType, int menu, DB * db) {
+	if (dbType == BTREE) {
+		if (menu == MENU_INIT)
+			return BTreeDBInit(db);
+		else if (menu == MENU_KEY) {
+			//Key search
+		}
+		else if (menu == MENU_DATA) {
+			//Data search
+		}
+		else if (menu == MENU_RANGE) {
+			//Range search
+		}
+	}
+	else if (dbType == HASH) {
+		if (menu == MENU_INIT)
+			return HashDBInit(db);
+		if (menu == MENU_KEY) {
+			//Key search
+		}
+		else if (menu == MENU_DATA) {
+			//Data search
+		}
+		else if (menu == MENU_RANGE) {
+			//Range search
+		}
+	}
+	else if (dbType == UNDEXFILE) {
+		if (menu == MENU_INIT) {
+			//Custom DB setup
+		}
+		if (menu == MENU_KEY) {
+			//Key search
+		}
+		else if (menu == MENU_DATA) {
+			//Data search
+		}
+		else if (menu == MENU_RANGE) {
+			//Range search
+		}
+	}
+}
+
