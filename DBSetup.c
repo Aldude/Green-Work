@@ -1,6 +1,6 @@
 #include "predef.h"
 
-int BTreeDBInit(DB * db) {
+int BTreeDBInit(DB * dbp) {
   FILE * dbinfo;
   int ret, range, index, i;
   DBT key, data;
@@ -8,12 +8,12 @@ int BTreeDBInit(DB * db) {
   char keybuff[128];
   char databuff[128];
 
-  if ((ret = db_create(&db, NULL, 0)) != 0 ) {
+  if ((ret = db_create(&dbp, NULL, 0)) != 0 ) {
     printf("db_create: %s\n", db_strerror(ret));
     return -1;
   }
 
-  if ((ret = db->open(db, NULL, BTREE_FILE, BTREE_HANDLE, DB_BTREE, DB_CREATE, 0)) != 0) {
+  if ((ret = dbp->open(dbp, NULL, BTREE_FILE, BTREE_HANDLE, DB_BTREE, DB_CREATE, 0)) != 0) {
     printf("DB doesn't exist, creating a new one: %s\n", db_strerror(ret));
     return -1;
   }
@@ -28,7 +28,9 @@ int BTreeDBInit(DB * db) {
   if(dbinfo == NULL)
     printf("Cannot open db_BTREE_log.txt\n");
 
-  for (index = 0; index < DB_SIZE; ++index)  {
+  index = 0;
+  
+  while (index < DB_SIZE)  {
     // Generate the key string
     range = 64 + random() % 64;
 		
@@ -38,7 +40,10 @@ int BTreeDBInit(DB * db) {
     keybuff[range] = 0;
 
     key.data = keybuff; 
-    key.size = range; 
+    key.size = range;
+    
+    if ((ret = dbp->exists(dbp, NULL, &key, 0) != DB_NOTFOUND)
+      continue;
 
     // Generate the data string
     range = 64 + random() % 64;
@@ -59,17 +64,19 @@ int BTreeDBInit(DB * db) {
       printf("%s\n%s\n\n", (char *)key.data, (char *)data.data);
     }
 
-    if ((ret = db->put(db, NULL, &key, &data, 0)) != 0)
+    if ((ret = dbp->put(dbp, NULL, &key, &data, 0)) != 0)
       printf("DB->put: %s\n", db_strerror(ret));
+
+    ++index;
   }
 
-  if ((ret = db->close(db,0)) != 0) 
+  if ((ret = dbp->close(dbp,0)) != 0) 
     printf("DB->close: %s\n", db_strerror(ret));
 
   return 0;
 }
 
-int HashDBInit(DB * db) {
+int HashDBInit(DB * dbp) {
   FILE * dbinfo;
   int ret, range, index, i;
   DBT key, data;
@@ -77,12 +84,12 @@ int HashDBInit(DB * db) {
   char keybuff[128];
   char databuff[128];
 
-  if ((ret = db_create(&db, NULL, 0)) != 0 ) {
+  if ((ret = db_create(&dbp, NULL, 0)) != 0 ) {
     printf("db_create: %s\n", db_strerror(ret));
     return -1;
   }
 
-  if ((ret = db->open(db, NULL, HASH_FILE, HASH_HANDLE, DB_HASH, DB_CREATE, 0)) != 0) {
+  if ((ret = dbp->open(dbp, NULL, HASH_FILE, HASH_HANDLE, DB_HASH, DB_CREATE, 0)) != 0) {
     printf("DB doesn't exist, creating a new one: %s\n", db_strerror(ret));
     return -1;
   }
@@ -94,10 +101,12 @@ int HashDBInit(DB * db) {
 
   dbinfo = fopen("db_HASH_log.txt", "w");
 
-  if(dbinfo == NULL)
+  if (dbinfo == NULL)
     printf("Cannot open db_HASH_log.txt\n");
 
-  for (index = 0; index < DB_SIZE; ++index)  {
+  index = 0;
+  
+  while (index < DB_SIZE)  {
     /* Generate the key string */
     range = 64 + random() % 64;
 		
@@ -107,7 +116,10 @@ int HashDBInit(DB * db) {
     keybuff[range] = 0;
 
     key.data = keybuff; 
-    key.size = range; 
+    key.size = range;
+    
+    if ((ret = dbp->exists(dbp, NULL, &key, 0) != DB_NOTFOUND)
+      continue;
 
     /* Generate the data string */
     range = 64 + random() % 64;
@@ -128,11 +140,13 @@ int HashDBInit(DB * db) {
       printf("%s\n%s\n\n", (char *)key.data, (char *)data.data);
     }
 
-    if ((ret = db->put(db, NULL, &key, &data, 0)) != 0)
+    if ((ret = dbp->put(dbp, NULL, &key, &data, 0)) != 0)
       printf("DB->put: %s\n", db_strerror(ret));
+
+    ++index;
   }
 
-  if ((ret = db->close(db,0)) != 0) 
+  if ((ret = dbp->close(dbp,0)) != 0) 
     printf("DB->close: %s\n", db_strerror(ret));
 
   return 0;

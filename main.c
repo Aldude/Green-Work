@@ -24,7 +24,7 @@ int main(int argc, char * argv[]) {
     BadCall(argv);
   }
 	
-  DB * db = malloc(sizeof(DB));
+  DB * dbp = malloc(sizeof(DB));
 	
   while(1) {
     printf("1) Create and populate a database\n");
@@ -40,13 +40,9 @@ int main(int argc, char * argv[]) {
       printf("Invalid selection: <%s>\n", buffer);
     }
     else if (menuOption == MENU_DESTROY) {
-      if ((ret = db->close(db,0)) != 0) {
-        printf("DB->close: %s\n", db_strerror(ret));
-        return -1;
-      }
-
-      if ((ret = db->remove(db, BTREE_FILE, BTREE_HANDLE, 0)) != 0)
+      if ((ret = dbp->remove(dbp, BTREE_FILE, BTREE_HANDLE, 0)) != 0)
         printf("DB->remove: %s\n", db_strerror(ret));
+	return -1;
     }
     else if (menuOption == 6) {
       free(db);
